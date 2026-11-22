@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Messy Inheritance: The Camel Problem</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Lora:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--night:#1b2a4a;--night2:#2a3d66;--paper:#f6f7f9;--card:#fff;--ink:#1a2236;--muted:#4c566d;--line:#d3d9e4;--saffron:#e3a21a;--teal:#1b7a73;--ok:#1b7a43;--bad:#a8392b;--fs:18px}
+*{box-sizing:border-box}
+html{font-size:var(--fs)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:"Atkinson Hyperlegible",Verdana,system-ui,sans-serif;line-height:1.55}
+h1,h2,h3{font-family:Lora,Georgia,serif;line-height:1.2;margin:0 0 .6rem}
+:focus-visible{outline:3px solid var(--saffron);outline-offset:2px}
+.skip{position:absolute;left:-999px;top:0;background:#fff;padding:.5rem 1rem;z-index:10}
+.skip:focus{left:0}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+header{background:var(--night);color:#fff;padding:.9rem 1.2rem 1.1rem}
+.top{display:flex;flex-wrap:wrap;gap:.8rem;align-items:center;justify-content:space-between}
+.brand{font-family:Lora,Georgia,serif;font-weight:700;font-size:1.15rem}
+.tools{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap}
+.tools label{font-size:.85rem}
+select,button,textarea{font:inherit}
+.tools select,.tools button{background:var(--night2);color:#fff;border:1px solid #6b7fa8;border-radius:6px;padding:.3rem .6rem;cursor:pointer}
+.trail{margin-top:.9rem;position:relative;padding-top:1.6rem}
+.track{height:8px;background:#3b4f7c;border-radius:8px;overflow:hidden}
+.fill{height:100%;width:0;background:var(--saffron);transition:width .5s}
+.camel{position:absolute;top:0;left:0;font-size:1.3rem;transform:translateX(-50%);transition:left .5s;filter:drop-shadow(0 1px 0 #0006)}
+.trail p{margin:.4rem 0 0;font-size:.85rem;color:#dbe3f5}
+.wrap{display:grid;grid-template-columns:270px 1fr;gap:1.4rem;max-width:1180px;margin:1.2rem auto;padding:0 1rem}
+nav details{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:.4rem .6rem}
+nav summary{font-weight:700;cursor:pointer;padding:.3rem}
+nav ol{list-style:none;margin:.3rem 0;padding:0}
+nav button{display:flex;width:100%;gap:.5rem;align-items:flex-start;text-align:left;background:none;border:0;border-radius:6px;padding:.4rem .5rem;cursor:pointer;color:var(--ink);font-size:.92rem}
+nav button:hover:not(:disabled){background:#eef1f7}
+nav button[aria-current=step]{background:#e4ebf8;font-weight:700}
+nav button:disabled{color:#7b8498;cursor:not-allowed}
+.dot{flex:none;width:1.3rem;text-align:center}
+.done .dot{color:var(--ok);font-weight:700}
+main{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:1.6rem;min-height:60vh}
+main h2{font-size:1.7rem}
+.listen{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-bottom:1.1rem}
+.btn{background:var(--night);color:#fff;border:0;border-radius:8px;padding:.55rem 1.1rem;cursor:pointer;font-weight:700}
+.btn:hover:not(:disabled){background:var(--night2)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.alt{background:#fff;color:var(--night);border:2px solid var(--night)}
+.btn.say{background:#fff;color:var(--night);border:1px solid var(--line);padding:.15rem .5rem;font-weight:400}
+.chip{display:inline-block;background:#e7f2f1;color:#0f4f4a;border-radius:20px;padding:.15rem .8rem;font-size:.85rem;margin:0 .3rem .3rem 0}
+.hero{background:linear-gradient(#1b2a4a 0%,#3d4f86 55%,#c98a3b 100%);border-radius:10px;overflow:hidden;margin-bottom:1.2rem}
+.hero svg{display:block;width:100%;height:auto}
+.hero .txt{padding:1.4rem 1.6rem 1.8rem;margin-top:-4.5rem;position:relative;color:#fff}
+.hero h2{font-size:clamp(2rem,6vw,3.4rem);letter-spacing:.01em}
+.hero .q{font-size:1.25rem}
+.note{background:#f1f4fa;border-left:4px solid var(--teal);padding:.7rem 1rem;border-radius:0 8px 8px 0;margin:1rem 0;font-size:.95rem}
+table{border-collapse:collapse;width:100%;margin:.8rem 0}
+th,td{border:1px solid var(--line);padding:.55rem .7rem;text-align:left;vertical-align:top}
+th{background:#eef1f7}
+fieldset{border:1px solid var(--line);border-radius:10px;margin:1rem 0;padding:.6rem 1rem}
+legend{font-weight:700;padding:0 .4rem}
+.opt{display:flex;gap:.6rem;align-items:center;padding:.5rem;border-radius:8px;cursor:pointer}
+.opt:hover{background:#f1f4fa}
+.opt input{width:1.2rem;height:1.2rem;accent-color:var(--night)}
+.fr{display:flex;gap:1rem;flex-wrap:wrap;margin:.8rem 0}
+.frac{background:#fff8e6;border:2px solid var(--saffron);border-radius:10px;padding:.6rem 1rem;min-width:9rem}
+.frac b{display:block;font-size:1.5rem;font-family:Lora,Georgia,serif}
+.bar{display:grid;grid-template-columns:7rem 1fr 2rem;gap:.6rem;align-items:center;margin:.3rem 0;font-size:.92rem}
+.bar i{display:block;height:14px;background:var(--teal);border-radius:7px;transition:width .4s}
+.match{display:grid;grid-template-columns:1fr 1.6fr;gap:.6rem;align-items:center;margin:.5rem 0}
+.match select,textarea{width:100%;padding:.5rem;border:2px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
+.match select.ok{border-color:var(--ok)}
+.match select.bad{border-color:var(--bad)}
+textarea{min-height:5.5rem}
+.fb{margin-top:.8rem;font-weight:700}
+.fb.ok{color:var(--ok)}.fb.bad{color:var(--bad)}
+.pager{display:flex;justify-content:space-between;gap:1rem;margin-top:1.6rem;padding-top:1rem;border-top:1px solid var(--line)}
+[hidden]{display:none!important}
+.rtools{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center;background:#eef1f7;border:1px solid var(--line);border-radius:10px;padding:.5rem;margin:.6rem 0;position:sticky;top:0;z-index:3}
+.rtools button,.rtools select{border:1px solid #9aa6bf;background:#fff;border-radius:6px;padding:.3rem .55rem;cursor:pointer;color:var(--ink)}
+.rtools button[aria-pressed=true]{background:var(--night);color:#fff;border-color:var(--night)}
+.rtools select:disabled{opacity:.45}
+#pginfo{font-size:.9rem;min-width:6.5rem;text-align:center}
+.rstage{overflow:auto;background:#7c869b;border-radius:10px;padding:8px;max-height:75vh}
+.pgwrap{position:relative;margin:0 auto;background:#fff}
+.pgwrap canvas{position:absolute;left:0;top:0}
+#ann{pointer-events:none;touch-action:none}
+.textLayer{position:absolute;left:0;top:0;line-height:1;overflow:hidden}
+.textLayer span{position:absolute;color:transparent;white-space:pre;transform-origin:0 0}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.8rem}
+.card{border:1px solid var(--line);border-radius:10px;padding:.6rem .8rem}
+.big{font-family:Lora,Georgia,serif;font-size:2.6rem;font-weight:700;color:var(--night);margin:.2rem 0 .8rem}
+.calc{font-family:Lora,Georgia,serif;font-size:1.5rem;margin:.2rem 0}
+.num{width:8rem;padding:.45rem;border:2px solid var(--line);border-radius:8px;font:inherit}
+.num.ok{border-color:var(--ok)}.num.bad{border-color:var(--bad)}
+.herd{display:flex;flex-wrap:wrap;gap:6px;max-width:26rem;margin:.8rem 0}
+.herd span{width:1.1rem;height:1.1rem;border-radius:50%;background:var(--night2)}
+.herd .own{background:var(--saffron);outline:2px solid var(--ink)}
+.lbl{display:block;font-weight:700;margin:.8rem 0 .25rem}
+.in{width:100%;padding:.5rem;border:2px solid var(--line);border-radius:8px;font:inherit;background:#fff;color:var(--ink)}
+.post{border:1px solid var(--line);border-left:5px solid var(--teal);border-radius:8px;padding:.5rem .9rem;margin:.7rem 0}
+.post p{margin:.25rem 0}
+.timer{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;margin:.8rem 0}
+details.key{margin:1rem 0;background:#f1f4fa;border-radius:8px;padding:.5rem .9rem}
+details.key summary{cursor:pointer;font-weight:700}
+main h4{margin:1rem 0 .2rem;font-size:1.05rem}
+math-field.num{display:block;min-width:9rem;max-width:100%;font-size:1.25rem;background:#fff;color:var(--ink);border:2px solid var(--line);border-radius:8px;padding:.15rem .45rem}
+math-field.num.ok{border-color:var(--ok)}math-field.num.bad{border-color:var(--bad)}
+.mathtool{margin:.4rem 0 .6rem}
+.mpanel{margin:.5rem 0;padding:.6rem;background:#f1f4fa;border:1px solid var(--line);border-radius:8px;display:flex;flex-wrap:wrap;gap:.5rem;align-items:center}
+.mpanel math-field{flex:1 1 14rem;font-size:1.3rem;background:#fff;color:var(--ink);border:2px solid var(--line);border-radius:8px;padding:.2rem .45rem}
+.mprev{margin-top:.4rem;padding:.4rem .7rem;background:#fff8e6;border-left:4px solid var(--saffron);border-radius:0 8px 8px 0;font-size:.95rem}
+.mprev:empty{display:none}
+@media(max-width:820px){.wrap{grid-template-columns:1fr}.match{grid-template-columns:1fr}.bar{grid-template-columns:6rem 1fr 2rem}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+<link rel="stylesheet" href="mathlive/mathlive-static.css">
+<script src="mathlive/mathlive.min.js"></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to the lesson</a>
+<header>
+  <div class="top">
+    <div class="brand">The Messy Inheritance</div>
+    <div class="tools" role="group" aria-label="Accessibility tools">
+      <label for="rate">Voice speed</label>
+      <select id="rate"><option value="0.8">Slow</option><option value="1" selected>Normal</option><option value="1.2">Fast</option></select>
+      <button id="fsBtn" type="button" aria-pressed="false">Larger text</button>
+      <button id="resetBtn" type="button">Reset progress</button>
+    </div>
+  </div>
+  <div class="trail">
+    <span class="camel" id="camel" aria-hidden="true">🐪</span>
+    <div class="track" role="progressbar" aria-label="Course progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="pbar"><div class="fill" id="fill"></div></div>
+    <p id="ptext" aria-live="polite"></p>
+  </div>
+</header>
+<div class="wrap">
+  <nav aria-label="Lesson stops"><details id="navd" open><summary>Your journey</summary><ol id="navlist"></ol></details></nav>
+  <main id="main" tabindex="-1"></main>
+</div>
+
+<script>
+const TOTAL = 17, BUILT = 17;
+const TITLES = ["Cover","The inheritance","Vocabulary: Part 1","Vocabulary: Part 2","Read the story","Meet the characters","Think mathematically","The impossible division","One more camel","Calculate again","The remainder","Is it fair?","Group A","Group B","Group C","Mathematical debate","Exit ticket"];
+let S = {cur:0, done:{}, poll:{yes:0,no:0,unsure:0}, ans:{}, notes:{}, board:[], debate:[]};
+try { Object.assign(S, JSON.parse(localStorage.getItem("camel-v1") || "{}")); } catch(e){}
+S.notes = S.notes || {}; S.board = S.board || []; S.debate = S.debate || [];
+const save = () => { try { localStorage.setItem("camel-v1", JSON.stringify(S)); } catch(e){} };
+const $ = s => document.querySelector(s);
+const esc = t => String(t).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+/* ---------- Math (MathLive, local files in /mathlive) ---------- */
+if(window.MathLive){ try { MathLive.MathfieldElement.soundsDirectory = null; } catch(e){} }
+function evalMath(src){
+  let t = String(src || "").replace(/\\left|\\right|\\!|\\,|\\;|\\ /g, "").replace(/\\[dt]frac/g, "\\frac").replace(/−/g, "-");
+  t = t.replace(/\\frac(\d)(\d)/g, "\\frac{$1}{$2}");
+  for(let k = 0; k < 12 && /\\frac\{[^{}]*\}\{[^{}]*\}/.test(t); k++) t = t.replace(/\\frac\{([^{}]*)\}\{([^{}]*)\}/g, "(($1)/($2))");
+  t = t.replace(/\\cdot|\\times/g, "*").replace(/\\div/g, "/").replace(/(\d),(\d)/g, "$1.$2").replace(/\{/g, "(").replace(/\}/g, ")");
+  if(!t.trim() || !/^[0-9.+\-*\/() ]+$/.test(t)) return NaN;
+  try { const v = Function('"use strict";return (' + t + ')')(); return typeof v === "number" ? v : NaN; } catch(e){ return NaN; }
+}
+function rich(txt){
+  return String(txt || "").split(/(\$[^$]+\$)/).map(p => {
+    if(p.length > 2 && p[0] === "$" && p.slice(-1) === "$" && window.MathLive){ try { return MathLive.convertLatexToMarkup(p.slice(1,-1)); } catch(e){} }
+    return esc(p).replace(/\n/g, "<br>");
+  }).join("");
+}
+const plain = txt => String(txt || "").replace(/\$([^$]+)\$/g, (m,l) => { try { return MathLive.convertLatexToAsciiMath(l); } catch(e){ return l; } });
+function mathPre(){
+  if(window.MathLive) return;
+  document.querySelectorAll("main math-field").forEach(m => { const i = document.createElement("input"); i.id = m.id; i.className = m.className; i.setAttribute("inputmode","decimal"); i.autocomplete = "off"; m.replaceWith(i); });
+}
+function enhance(el){
+  if(!window.MathLive) return;
+  const box = document.createElement("div"); box.className = "mathtool";
+  box.innerHTML = '<button type="button" class="btn alt mtb">∑ Add a fraction or formula</button><div class="mpanel" hidden><math-field class="mfld" math-virtual-keyboard-policy="onfocus" aria-label="Math editor"></math-field><button type="button" class="btn mins">Insert in my answer</button><button type="button" class="btn alt mcan">Cancel</button></div><div class="mprev"></div>';
+  el.insertAdjacentElement("afterend", box);
+  const panel = box.querySelector(".mpanel"), mf = box.querySelector(".mfld"), prev = box.querySelector(".mprev");
+  const upd = () => { prev.innerHTML = /\$[^$]+\$/.test(el.value) ? "<b>Preview:</b> " + rich(el.value) : ""; };
+  box.querySelector(".mtb").onclick = () => { panel.hidden = !panel.hidden; if(!panel.hidden) mf.focus(); };
+  box.querySelector(".mcan").onclick = () => { panel.hidden = true; el.focus(); };
+  box.querySelector(".mins").onclick = () => {
+    const l = (mf.value || "").trim(); if(!l) return;
+    const a = el.selectionStart == null ? el.value.length : el.selectionStart, b = el.selectionEnd == null ? a : el.selectionEnd, tok = "$" + l + "$";
+    el.value = el.value.slice(0,a) + tok + el.value.slice(b); el.focus(); el.setSelectionRange(a + tok.length, a + tok.length);
+    mf.value = ""; panel.hidden = true; upd();
+  };
+  el.addEventListener("input", upd); upd();
+}
+function mathPost(){ document.querySelectorAll("main textarea, main input.mathable").forEach(enhance); }
+
+/* ---------- Audio (browser speech synthesis) ---------- */
+const synth = window.speechSynthesis;
+function spoken(t){ return t.replace(/1\/2/g,"one half").replace(/1\/3/g,"one third").replace(/1\/9/g,"one ninth").replace(/(\d+)\/(\d+)/g,"$1 over $2").replace(/÷/g," divided by ").replace(/×/g," times ").replace(/=/g," equals ").replace(/\+/g," plus ").replace(/\s+/g," ").trim(); }
+function speak(t){
+  if(!synth){ alert("Your browser does not support speech. Try Chrome, Edge or Safari."); return; }
+  synth.cancel();
+  const u = new SpeechSynthesisUtterance(spoken(t));
+  u.lang = "en-US"; u.rate = parseFloat($("#rate").value);
+  const v = synth.getVoices().find(v => /^en/i.test(v.lang)); if(v) u.voice = v;
+  synth.speak(u);
+}
+let clip = null;
+const stopSpeech = () => { if(synth) synth.cancel(); if(clip){ clip.pause(); clip = null; } };
+function playClip(file, fallback){
+  stopSpeech();
+  const a = new Audio("audio/" + encodeURIComponent(file));
+  clip = a;
+  a.onerror = () => { clip = null; speak(fallback); };
+  a.play().catch(() => {});
+}
+function listenBar(){
+  return '<div class="listen"><button class="btn alt" data-act="listen" type="button">🔊 Listen to this slide</button><button class="btn alt" data-act="stop" type="button">Stop audio</button></div>';
+}
+
+/* ---------- Slides ---------- */
+const cover = {
+  html: () => `
+  <div class="hero">
+    <svg viewBox="0 0 800 300" role="img" aria-label="Stylised desert at dusk with a large sun, rolling dunes and a small caravan of camels.">
+      <circle cx="610" cy="150" r="70" fill="#f4c25b" opacity=".95"/>
+      <path d="M0 220 Q120 150 260 205 T520 200 T800 190 V300 H0Z" fill="#a8672a"/>
+      <path d="M0 260 Q180 200 340 250 T800 235 V300 H0Z" fill="#7d4a1f"/>
+      <g fill="#3a2410"><path d="M180 215 q6-18 14-6 q4-14 12 0 q8-6 10 10 l-4 18 h-4 l-2-12 h-12 l-2 12 h-4z"/><path d="M240 222 q6-18 14-6 q4-14 12 0 q8-6 10 10 l-4 18 h-4 l-2-12 h-12 l-2 12 h-4z"/></g>
+    </svg>
+    <div class="txt speak">
+      <h2>THE MESSY INHERITANCE</h2>
+      <p class="q">Can 35 camels be divided fairly?</p>
+      <p>A mathematical mystery from <i>The Man Who Counted</i></p>
+    </div>
+  </div>
+  <p><span class="chip">English + Mathematics</span><span class="chip">Grade 8–9</span><span class="chip">Level B1</span></p>
+  <p class="note speak"><b>Scene description:</b> Three brothers have inherited 35 camels. They must divide them according to three different fractions. The problem seems impossible.</p>
+  <p>An interactive lesson based on the camel inheritance problem from <i>The Man Who Counted</i>. You will explore fractions, mathematical reasoning, fairness and English through problem-solving.</p>
+  <div class="pager"><span></span><button class="btn" data-act="start" type="button">Start the journey</button></div>`,
+  bind(){ $('[data-act=start]').onclick = () => { complete(0); go(1); }; }
+};
+
+const poll = {
+  html: () => `
+  ${listenBar()}
+  <h2>The inheritance</h2>
+  <div class="speak">
+    <p>Imagine that three brothers inherit 35 camels. They must divide the camels according to the following instructions:</p>
+    <div class="fr">
+      <div class="frac">The eldest brother receives <b>1/2</b>One half</div>
+      <div class="frac">The second brother receives <b>1/3</b>One third</div>
+      <div class="frac">The youngest brother receives <b>1/9</b>One ninth</div>
+    </div>
+    <p><b>Do you think this division is possible?</b></p>
+  </div>
+  <form id="pf">
+    <fieldset><legend>Your first hypothesis</legend>
+      <label class="opt"><input type="radio" name="p" value="yes"> Yes, it is possible.</label>
+      <label class="opt"><input type="radio" name="p" value="no"> No, it is impossible.</label>
+      <label class="opt"><input type="radio" name="p" value="unsure"> I am not sure.</label>
+    </fieldset>
+    <button class="btn" type="submit">Submit my vote</button>
+  </form>
+  <div id="res" aria-live="polite"></div>
+  <p class="note">There is no right or wrong answer yet. We only want your first idea.</p>
+  ${pager(1)}`,
+  bind(){
+    $('#pf').onsubmit = e => {
+      e.preventDefault();
+      const v = (document.querySelector('input[name=p]:checked') || {}).value;
+      if(!v){ $('#res').innerHTML = '<p class="fb bad">Please choose one option first.</p>'; return; }
+      S.poll[v]++; complete(1); showTally(true);
+      document.querySelectorAll('input[name=p]').forEach(r => r.checked = false);
+    };
+    if(S.done[1]) showTally(false);
+  }
+};
+function showTally(fresh){
+  const L = {yes:"Yes, possible", no:"No, impossible", unsure:"Not sure"}, n = S.poll.yes+S.poll.no+S.poll.unsure;
+  $('#res').innerHTML = (fresh ? '<p class="fb ok">Vote recorded. Thank you!</p>' : '') +
+    '<h3>Votes on this device</h3>' + Object.keys(L).map(k => `<div class="bar"><span>${L[k]}</span><i style="width:${n?S.poll[k]/n*100:0}%"></i><b>${S.poll[k]}</b></div>`).join('') +
+    '<p>Sharing one screen? The next student can vote now. The totals add up.</p>';
+}
+
+const vocab1 = {
+  defs: ["Receive something after someone’s death.","A part of a whole.","What is left.","According to a specific ratio or fraction."],
+  terms: ["To inherit","A fraction of","The remainder","Proportionally"],
+  order: [2,0,3,1],
+  html(){ return `
+  ${listenBar()}
+  <h2>Vocabulary: Part 1</h2>
+  <p class="speak">Listen, read and think about the meaning.</p>
+  <table><caption class="sr">Expressions and examples</caption><tr><th>Expression</th><th>Example</th><th>Audio</th></tr>
+  ${[["To inherit / an inheritance","The three brothers inherited 35 camels.","to inherit.mp3"],["To divide equally / proportionally","Beremiz did not divide equally. He divided proportionally.","to divide equally.mp3"],["A fraction of","Each brother received a fraction of the total.","a fraction of.mp3"],["The remainder / what’s left","After the division, two camels were left as the remainder.","the remainder.mp3"]].map(r => `<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td><button class="btn say" type="button" data-audio="${r[2]}" data-say="${esc(r[0]+". "+r[1])}" aria-label="Listen: ${esc(r[0])}">🔊</button></td></tr>`).join("")}</table>
+  <h3>Match each expression with its meaning</h3>
+  <p class="note">Use the drop-down list in each row. This works with keyboard and screen readers.</p>
+  <form id="mf">${this.terms.map((t,i) => `<div class="match"><label for="m${i}"><b>${t}</b></label><select id="m${i}"><option value="">Choose a meaning…</option>${this.order.map(j => `<option value="${j}">${this.defs[j]}</option>`).join("")}</select></div>`).join("")}
+  <button class="btn" type="submit">Check my answers</button></form>
+  <div id="mfb" class="fb" aria-live="polite"></div>
+  ${pager(2)}`; },
+  bind(){
+    $('#mf').onsubmit = e => {
+      e.preventDefault(); let ok = 0;
+      this.terms.forEach((t,i) => { const s = $('#m'+i); const good = s.value === String(i); s.className = s.value ? (good ? "ok" : "bad") : ""; if(good) ok++; });
+      const f = $('#mfb');
+      if(ok === 4){ f.className = "fb ok"; f.textContent = "Excellent! All four matches are correct."; complete(2); }
+      else { f.className = "fb bad"; f.textContent = ok + " of 4 correct. Check the rows marked in red and try again."; }
+    };
+  }
+};
+
+const vocab2 = {
+  html: () => `
+  ${listenBar()}
+  <h2>Vocabulary: Part 2</h2>
+  <table><caption class="sr">Expressions and examples</caption><tr><th>Expression</th><th>Example</th><th>Audio</th></tr>
+  ${[["To add temporarily","He added his camel temporarily to make the division possible.","to add temporarily.mp3"],["It follows that…","18 + 12 + 4 = 34. It follows that 2 camels remain.","it follows that.mp3"],["To verify / to check","Let’s verify: does 1/2 of 36 equal 18? Yes.","to verify.mp3"],["A fair share","Is 18 camels a fair share for the eldest brother?","a fair share.mp3"]].map(r => `<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td><button class="btn say" type="button" data-audio="${r[2]}" data-say="${esc(r[0]+". "+r[1])}" aria-label="Listen: ${esc(r[0])}">🔊</button></td></tr>`).join("")}</table>
+  <h3>Open question</h3>
+  <p class="speak">Which expression would you use to explain what happens when Beremiz adds his camel?</p>
+  <form id="of"><label for="oa" class="sr">Your answer</label><textarea id="oa" placeholder="Write your answer in English…">${esc(S.ans.v2||"")}</textarea>
+  <p><button class="btn" type="submit">Save my answer</button></p></form>
+  <div id="ofb" aria-live="polite"></div>
+  ${pager(3)}`,
+  bind(){
+    const show = () => { $('#ofb').innerHTML = '<p class="fb ok">Answer saved.</p><p class="note"><b>A possible answer:</b> He adds his camel temporarily. Did you use a similar expression?</p>'; };
+    $('#of').onsubmit = e => { e.preventDefault(); const v = $('#oa').value.trim();
+      if(!v){ $('#ofb').innerHTML = '<p class="fb bad">Write at least a few words first.</p>'; return; }
+      S.ans.v2 = v; complete(3); show(); };
+    if(S.done[3]) show();
+  }
+};
+
+/* ---------- Slides 5–8 ---------- */
+const PDF_PATH = "assets/chapter3.pdf", CHAPTER_LINK = "";
+const PDFJS = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/";
+let PDFDOC = null, pdfjsP = null;
+const R = {page:1, zoom:1, tool:"read", cols:{pen:"#e02424", hl:"#ffe600"}, busy:false, again:false};
+function loadPdfJs(){
+  if(window.pdfjsLib) return Promise.resolve();
+  return pdfjsP = pdfjsP || new Promise((ok,no) => {
+    const s = document.createElement("script"); s.src = PDFJS + "pdf.min.js";
+    s.onload = () => { pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS + "pdf.worker.min.js"; ok(); };
+    s.onerror = () => { pdfjsP = null; no(); };
+    document.head.appendChild(s);
+  });
+}
+async function openPdf(src, quiet){
+  const m = $("#rmsg");
+  try { await loadPdfJs(); } catch(e){ m.textContent = "The PDF viewer needs an internet connection the first time you open it."; return; }
+  try {
+    PDFDOC = await pdfjsLib.getDocument(typeof src === "string" ? {url:src} : {data:src}).promise;
+    R.page = Math.min(S.pg || 1, PDFDOC.numPages); showReader();
+  } catch(e){
+    m.textContent = quiet ? "To read the chapter here, choose the PDF file (chapter3.pdf) from your computer." : "That file could not be opened. Please choose a valid PDF.";
+  }
+}
+function showReader(){ $("#rload").hidden = true; $("#rbox").hidden = false; setTool(R.tool); drawPage(); }
+async function drawPage(){
+  if(R.busy){ R.again = true; return; }
+  R.busy = true;
+  try {
+    const page = await PDFDOC.getPage(R.page), dpr = window.devicePixelRatio || 1;
+    const base = page.getViewport({scale:1}), avail = $("#rstage").clientWidth - 16;
+    const vp = page.getViewport({scale: avail / base.width * R.zoom});
+    const w = Math.floor(vp.width), h = Math.floor(vp.height), wrap = $("#pgwrap");
+    wrap.style.width = w + "px"; wrap.style.height = h + "px";
+    for(const k of [$("#pdfc"), $("#ann")]){ k.width = w*dpr; k.height = h*dpr; k.style.width = w + "px"; k.style.height = h + "px"; }
+    await page.render({canvasContext:$("#pdfc").getContext("2d"), viewport:vp, transform:[dpr,0,0,dpr,0,0]}).promise;
+    const tl = $("#tl"); tl.innerHTML = ""; tl.style.width = w + "px"; tl.style.height = h + "px";
+    try { pdfjsLib.renderTextLayer({textContentSource: await page.getTextContent(), container: tl, viewport: vp, textDivs: []}); } catch(e){}
+    $("#pginfo").textContent = "Page " + R.page + " of " + PDFDOC.numPages;
+    redraw();
+  } finally { R.busy = false; if(R.again){ R.again = false; drawPage(); } }
+}
+const strokes = () => (S.notes[R.page] = S.notes[R.page] || []);
+function redraw(){
+  const a = $("#ann"), x = a.getContext("2d"), dpr = window.devicePixelRatio || 1, W = a.width/dpr, H = a.height/dpr;
+  x.setTransform(dpr,0,0,dpr,0,0); x.clearRect(0,0,W,H); x.lineCap = x.lineJoin = "round";
+  for(const s of strokes()){
+    x.globalAlpha = s.t === "hl" ? .35 : 1; x.strokeStyle = s.c; x.lineWidth = s.t === "hl" ? W*.022 : Math.max(2, W*.004);
+    x.beginPath(); s.p.forEach((p,i) => i ? x.lineTo(p[0]*W, p[1]*H) : x.moveTo(p[0]*W, p[1]*H));
+    if(s.p.length === 1) x.lineTo(s.p[0][0]*W + .1, s.p[0][1]*H);
+    x.stroke();
+  }
+  x.globalAlpha = 1;
+}
+function setTool(t){
+  R.tool = t;
+  document.querySelectorAll("[data-tool]").forEach(b => b.setAttribute("aria-pressed", b.dataset.tool === t));
+  const a = $("#ann"), c = $("#col");
+  a.style.pointerEvents = t === "read" ? "none" : "auto"; a.style.cursor = t === "erase" ? "cell" : "crosshair";
+  c.disabled = (t === "read" || t === "erase"); if(R.cols[t]) c.value = R.cols[t];
+}
+function bindInk(){
+  const a = $("#ann"); let cur = null;
+  const pt = e => { const r = a.getBoundingClientRect(); return [+((e.clientX-r.left)/r.width).toFixed(4), +((e.clientY-r.top)/r.height).toFixed(4)]; };
+  const erase = p => { S.notes[R.page] = strokes().filter(s => !s.p.some(q => Math.hypot(q[0]-p[0], q[1]-p[1]) < .02)); redraw(); };
+  a.onpointerdown = e => {
+    if(R.tool === "read") return;
+    a.setPointerCapture(e.pointerId); const p = pt(e);
+    if(R.tool === "erase"){ cur = "erase"; erase(p); return; }
+    cur = {t:R.tool, c:R.cols[R.tool], p:[p]}; strokes().push(cur); redraw();
+  };
+  a.onpointermove = e => { if(!cur) return; const p = pt(e); if(cur === "erase") erase(p); else { cur.p.push(p); redraw(); } };
+  a.onpointerup = a.onpointercancel = () => { if(cur){ cur = null; save(); } };
+}
+async function readPage(){
+  const tc = await (await PDFDOC.getPage(R.page)).getTextContent();
+  speak(tc.items.map(i => i.str).join(" "));
+}
+window.addEventListener("resize", () => { if(PDFDOC && $("#pdfc")) drawPage(); });
+
+const reading = {
+  html: () => `
+  ${listenBar()}
+  <h2>Read the story</h2>
+  <p class="speak">Read Chapter 3, “Beasts of Burden”, from <i>The Man Who Counted</i>.</p>
+  <fieldset><legend>Pay attention to</legend>
+    ${["The inheritance.","The fractions.","The problem with the division.","Beremiz’s solution."].map((t,i) => `<label class="opt"><input type="checkbox"> ${t}</label>`).join("")}
+  </fieldset>
+  <div id="rload"><p id="rmsg" class="note" aria-live="polite">Loading the chapter…</p>
+    <button class="btn" id="pick" type="button">Choose the chapter PDF</button><input type="file" id="pf" accept="application/pdf" hidden>
+    ${CHAPTER_LINK ? ` <a href="${CHAPTER_LINK}" target="_blank" rel="noopener">Open the chapter in a new tab</a>` : ""}</div>
+  <div id="rbox" hidden>
+    <div class="rtools" role="toolbar" aria-label="Reading and annotation tools">
+      <button type="button" data-tool="read" aria-pressed="true">✋ Read</button>
+      <button type="button" data-tool="pen" aria-pressed="false">🖊️ Pen</button>
+      <button type="button" data-tool="hl" aria-pressed="false">🖍️ Highlighter</button>
+      <button type="button" data-tool="erase" aria-pressed="false">🧽 Eraser</button>
+      <label class="sr" for="col">Colour</label>
+      <select id="col"><option value="#ffe600">Yellow</option><option value="#38d86a">Green</option><option value="#ff5fa8">Pink</option><option value="#2d6bff">Blue</option><option value="#e02424">Red</option><option value="#111111">Black</option></select>
+      <button type="button" id="undo">Undo</button><button type="button" id="clr">Clear page</button>
+      <button type="button" id="zo" aria-label="Zoom out">−</button><button type="button" id="zi" aria-label="Zoom in">+</button>
+      <button type="button" id="pp" aria-label="Previous page">◀</button><span id="pginfo" aria-live="polite"></span><button type="button" id="np" aria-label="Next page">▶</button>
+      <button type="button" id="rl">🔊 Read this page</button>
+    </div>
+    <div class="rstage" id="rstage"><div class="pgwrap" id="pgwrap"><canvas id="pdfc"></canvas><div class="textLayer" id="tl"></div><canvas id="ann" aria-hidden="true"></canvas></div></div>
+    <p class="note">Choose a tool to draw or highlight. Choose “Read” to select the text again. Your marks are saved on this device.</p>
+  </div>
+  <p><button class="btn" id="rdone" type="button">I have finished reading</button> <span id="rfb" class="fb ok" aria-live="polite">${S.done[4] ? "Reading completed." : ""}</span></p>
+  ${pager(4)}`,
+  bind(){
+    $("#pick").onclick = () => $("#pf").click();
+    $("#pf").onchange = async e => { const f = e.target.files[0]; if(f){ $("#rmsg").textContent = "Opening…"; openPdf(await f.arrayBuffer(), false); } };
+    $("#col").onchange = e => { if(R.cols[R.tool]) R.cols[R.tool] = e.target.value; };
+    $("#rbox").onclick = e => {
+      const b = e.target.closest("button"); if(!b) return;
+      if(b.dataset.tool) setTool(b.dataset.tool);
+      else if(b.id === "undo"){ strokes().pop(); redraw(); save(); }
+      else if(b.id === "clr"){ S.notes[R.page] = []; redraw(); save(); }
+      else if(b.id === "zi" || b.id === "zo"){ R.zoom = Math.max(.6, Math.min(2.5, R.zoom + (b.id === "zi" ? .2 : -.2))); drawPage(); }
+      else if(b.id === "pp" || b.id === "np"){
+        const n = R.page + (b.id === "np" ? 1 : -1);
+        if(n >= 1 && n <= PDFDOC.numPages){ R.page = n; S.pg = n; save(); drawPage(); $("#rstage").scrollTop = 0; }
+      } else if(b.id === "rl") readPage();
+    };
+    bindInk();
+    $("#rdone").onclick = () => { complete(4); $("#rfb").textContent = "Great! Go to the next stop."; };
+    if(PDFDOC) showReader(); else openPdf(PDF_PATH, true);
+  }
+};
+
+const CH = ["The narrator","Beremiz","The eldest brother","Hanak, the travelling companion"];
+const chars = {
+  html: () => `
+  ${listenBar()}
+  <h2>Meet the characters</h2>
+  <p class="speak"><b>Who is speaking?</b> Before speaking, say your character’s name.</p>
+  <form id="cf"><fieldset><legend>Choose your character</legend><div class="cards">
+    ${CH.map((c,i) => `<div class="card"><label class="opt"><input type="radio" name="ch" value="${i}" ${S.ans.ch === i ? "checked" : ""}> <b>${c}</b></label><button type="button" class="btn say" data-say="${esc(c)}" aria-label="Hear the name: ${esc(c)}">🔊 Hear the name</button></div>`).join("")}
+  </div></fieldset>
+  <button class="btn" type="submit">I’m ready for the reading</button></form>
+  <div id="cfb" class="fb" aria-live="polite"></div>
+  ${pager(5)}`,
+  bind(){
+    const msg = i => { $("#cfb").className = "fb ok"; $("#cfb").textContent = "Your character: " + CH[i] + ". Remember to say “" + CH[i].split(",")[0] + "” before you speak."; };
+    $("#cf").onsubmit = e => {
+      e.preventDefault(); const r = document.querySelector("input[name=ch]:checked");
+      if(!r){ $("#cfb").className = "fb bad"; $("#cfb").textContent = "Please choose a character first."; return; }
+      S.ans.ch = +r.value; complete(5); msg(+r.value);
+    };
+    if(S.done[5] && S.ans.ch !== undefined) msg(S.ans.ch);
+  }
+};
+
+const think = {
+  html: () => `
+  ${listenBar()}
+  <h2>Think mathematically</h2>
+  <p class="big" aria-label="35 camels">35 CAMELS</p>
+  <div class="speak"><p><b>Calculate mentally:</b></p>
+    <p class="calc">35 ÷ 2 = ?</p><p class="calc">35 ÷ 3 = ?</p><p class="calc">35 ÷ 9 = ?</p>
+    <p><b>What do you notice about these calculations?</b></p></div>
+  <form id="tf"><label class="sr" for="t7">Your answer</label><textarea id="t7" placeholder="Write what you notice, in English…">${esc(S.ans.v7 || "")}</textarea>
+  <p><button class="btn" type="submit">Save my answer</button></p></form>
+  <div id="tfb" aria-live="polite"></div>
+  ${pager(6)}`,
+  bind(){
+    const show = () => { $("#tfb").innerHTML = '<p class="fb ok">Answer saved.</p><p class="note">Compare your idea with a partner. Did you notice the same thing? On the next slide you will check the exact values.</p>'; };
+    $("#tf").onsubmit = e => { e.preventDefault(); const v = $("#t7").value.trim();
+      if(!v){ $("#tfb").innerHTML = '<p class="fb bad">Write at least a few words first.</p>'; return; }
+      S.ans.v7 = v; complete(6); show(); };
+    if(S.done[6]) show();
+  }
+};
+
+const impossible = {
+  T: [17.5, 35/3, 35/9],
+  html: () => `
+  ${listenBar()}
+  <h2>The impossible division</h2>
+  <div class="speak"><p><b>Calculate 1/2, 1/3 and 1/9 of 35.</b></p></div>
+  <form id="nf">
+    <div class="match"><label for="n0">One half of 35</label><math-field id="n0" class="num" math-virtual-keyboard-policy="onfocus"></math-field></div>
+    <div class="match"><label for="n1">One third of 35</label><math-field id="n1" class="num" math-virtual-keyboard-policy="onfocus"></math-field></div>
+    <div class="match"><label for="n2">One ninth of 35</label><math-field id="n2" class="num" math-virtual-keyboard-policy="onfocus"></math-field></div>
+    <p class="note">You can round to two decimal places.</p>
+    <button class="btn" type="submit">Check my calculations</button></form>
+  <div id="nfb" class="fb" aria-live="polite"></div>
+  <h3>Why is the division impossible as stated?</h3>
+  <form id="wf"><label class="sr" for="w8">Your explanation</label><textarea id="w8" placeholder="Explain in English…">${esc(S.ans.v8 || "")}</textarea>
+  <p><button class="btn" type="submit">Save my explanation</button></p></form>
+  <div id="wfb" aria-live="polite"></div>
+  ${pager(7)}`,
+  bind(){
+    const T = this.T;
+    const key = () => { $("#wfb").innerHTML = '<p class="fb ok">Explanation saved.</p><div class="note"><b>Key idea.</b> 1/2 of 35 = 17.5, 1/3 of 35 = 11.666…, and 1/9 of 35 = 3.888…. None of these is a whole number of camels.<br>There is more: 1/2 + 1/3 + 1/9 = 9/18 + 6/18 + 2/18 = 17/18. The shares add up to less than the whole inheritance. So the instructions are not only hard to follow. They do not even cover all 35 camels.</div>'; };
+    $("#nf").onsubmit = e => {
+      e.preventDefault(); let ok = 0;
+      T.forEach((t,i) => { const el = $("#n"+i), v = evalMath(el.value); const good = Math.abs(v - t) < .02; el.className = "num " + (el.value ? (good ? "ok" : "bad") : ""); if(good) ok++; });
+      const f = $("#nfb");
+      if(ok === 3){ S.ans.v8ok = true; save(); f.className = "fb ok"; f.textContent = "Correct! None of the results is a whole number."; }
+      else { f.className = "fb bad"; f.textContent = ok + " of 3 correct. Check the fields marked in red and try again."; }
+    };
+    $("#wf").onsubmit = e => {
+      e.preventDefault(); const v = $("#w8").value.trim();
+      if(!S.ans.v8ok){ $("#wfb").innerHTML = '<p class="fb bad">Check your calculations first.</p>'; return; }
+      if(!v){ $("#wfb").innerHTML = '<p class="fb bad">Write at least a few words first.</p>'; return; }
+      S.ans.v8 = v; complete(7); key();
+    };
+    if(S.done[7]) key();
+  }
+};
+
+/* ---------- Slides 9–12 ---------- */
+function numCheck(T, fb){
+  let ok = 0;
+  T.forEach((t,i) => { const el = $("#n"+i), v = evalMath(el.value); const good = Math.abs(v - t) < .02; el.className = "num " + (el.value ? (good ? "ok" : "bad") : ""); if(good) ok++; });
+  fb.className = "fb " + (ok === T.length ? "ok" : "bad");
+  fb.textContent = ok === T.length ? "Correct!" : ok + " of " + T.length + " correct. Check the fields marked in red and try again.";
+  return ok === T.length;
+}
+const addCamel = {
+  html: () => `
+  ${listenBar()}
+  <h2>One more camel</h2>
+  <div class="speak"><p>Beremiz adds his own camel temporarily. The total becomes 36 camels.</p></div>
+  <div class="herd" role="img" aria-label="35 camels plus one extra camel that belongs to Beremiz, making 36 camels."><span></span>${"<span></span>".repeat(34)}<span class="own"></span></div>
+  <p class="calc">35 + 1 = 36</p>
+  <p class="speak"><b>What changes when the total becomes 36?</b></p>
+  <form id="af"><label class="sr" for="a9">Your answer</label><textarea id="a9" placeholder="Write your idea in English…">${esc(S.ans.v9 || "")}</textarea>
+  <p><button class="btn" type="submit">Save my answer</button></p></form>
+  <div id="afb" aria-live="polite"></div>
+  ${pager(8)}`,
+  bind(){
+    const show = () => { $("#afb").innerHTML = '<p class="fb ok">Answer saved.</p><p class="note">Keep your idea in mind. On the next slide you will test it with calculations.</p>'; };
+    $("#af").onsubmit = e => { e.preventDefault(); const v = $("#a9").value.trim();
+      if(!v){ $("#afb").innerHTML = '<p class="fb bad">Write at least a few words first.</p>'; return; }
+      S.ans.v9 = v; complete(8); show(); };
+    if(S.done[8]) show();
+  }
+};
+
+const calcAgain = {
+  T: [18, 12, 4, 34],
+  html: () => `
+  ${listenBar()}
+  <h2>Calculate again</h2>
+  <div class="speak"><p><b>The new inheritance: 36 camels.</b> Calculate the following.</p></div>
+  <form id="nf">
+    <div class="match"><label for="n0">1. One half of 36</label><math-field id="n0" class="num" math-virtual-keyboard-policy="onfocus"></math-field></div>
+    <div class="match"><label for="n1">2. One third of 36</label><math-field id="n1" class="num" math-virtual-keyboard-policy="onfocus"></math-field></div>
+    <div class="match"><label for="n2">3. One ninth of 36</label><math-field id="n2" class="num" math-virtual-keyboard-policy="onfocus"></math-field></div>
+    <div class="match"><label for="n3">4. Add the three results</label><math-field id="n3" class="num" math-virtual-keyboard-policy="onfocus"></math-field></div>
+    <button class="btn" type="submit">Check my calculations</button></form>
+  <div id="nfb" class="fb" aria-live="polite"></div><div id="eq" aria-live="polite"></div>
+  ${pager(9)}`,
+  bind(){
+    const eq = () => { $("#eq").innerHTML = '<p class="note">36 ÷ 2 = 18, 36 ÷ 3 = 12, 36 ÷ 9 = 4, and 18 + 12 + 4 = 34. All three results are whole numbers!</p>'; };
+    $("#nf").onsubmit = e => { e.preventDefault(); if(numCheck(this.T, $("#nfb"))){ complete(9); eq(); } };
+    if(S.done[9]) eq();
+  }
+};
+
+const remainder = {
+  html: () => `
+  ${listenBar()}
+  <h2>The remainder</h2>
+  <div class="speak"><p>The three brothers received 18, 12 and 4 camels.</p><p><b>How many camels remain?</b></p></div>
+  <form id="nf"><div class="match"><label for="n0">Camels that remain</label><math-field id="n0" class="num" math-virtual-keyboard-policy="onfocus"></math-field></div>
+  <button class="btn" type="submit">Check my answer</button></form>
+  <div id="nfb" class="fb" aria-live="polite"></div>
+  <h3>Reflection</h3>
+  <p class="speak"><b>What happened to Beremiz’s camel? Did he lose his camel?</b></p>
+  <form id="rf"><label class="sr" for="r11">Your reflection</label><textarea id="r11" placeholder="Explain in English…">${esc(S.ans.v11 || "")}</textarea>
+  <p><button class="btn" type="submit">Save my reflection</button></p></form>
+  <div id="rfb" aria-live="polite"></div>
+  ${pager(10)}`,
+  bind(){
+    const key = () => { $("#rfb").innerHTML = '<p class="fb ok">Reflection saved.</p><div class="note"><b>Key idea.</b> Beremiz added one camel temporarily. The brothers received 34 camels, so 2 camels remained: 36 − 34 = 2. Beremiz could take back the camel he added and keep the other one. He did not lose his camel.</div>'; };
+    $("#nf").onsubmit = e => { e.preventDefault(); const ok = numCheck([2], $("#nfb")); S.ans.v11ok = ok; save(); if(ok) $("#nfb").textContent = "Correct! 36 − 34 = 2. Two camels remain."; };
+    $("#rf").onsubmit = e => {
+      e.preventDefault(); const v = $("#r11").value.trim();
+      if(!S.ans.v11ok){ $("#rfb").innerHTML = '<p class="fb bad">Answer the first question correctly first.</p>'; return; }
+      if(!v){ $("#rfb").innerHTML = '<p class="fb bad">Write at least a few words first.</p>'; return; }
+      S.ans.v11 = v; complete(10); key();
+    };
+    if(S.done[10]) key();
+  }
+};
+
+const LBL = {fair:"Fair", notfair:"Not completely fair", unsure:"Not sure"};
+const OP = {fair:"I think it is fair", notfair:"I think it is not completely fair", unsure:"I am not sure"};
+const fairBoard = {
+  html: () => `
+  ${listenBar()}
+  <h2>Is it fair?</h2>
+  <div class="speak"><p>Each brother received more than the fraction of the original 35 camels indicated in the inheritance.</p><p><b>Is Beremiz’s solution fair?</b></p></div>
+  <div class="note"><b>Sentence starters.</b> “I think the solution is fair because the eldest brother received 18 camels instead of 17.5.” Or: “I think the solution is not completely fair because the brothers received more than their original shares.”</div>
+  <form id="bf"><fieldset><legend>Add your post to the board</legend>
+    <label class="lbl" for="bn">Name or group (optional)</label><input id="bn" class="in" autocomplete="off">
+    <label class="lbl" for="bo">1. Your opinion</label>
+    <select id="bo" class="in">${Object.keys(OP).map(k => `<option value="${k}">${OP[k]}</option>`).join("")}</select>
+    <label class="lbl" for="be">2. Numerical evidence</label><textarea id="be" placeholder="Use numbers from the problem…"></textarea>
+    <label class="lbl" for="bj">3. Your justification</label><textarea id="bj" placeholder="Explain your opinion in English…"></textarea>
+    <p><button class="btn" type="submit">Post to the board</button></p></fieldset></form>
+  <div id="bfb" aria-live="polite"></div>
+  <h3>Class board</h3>
+  <p class="note">Sharing one screen? Post one answer after another. The board keeps every post on this device.</p>
+  <div id="bd"></div>
+  ${pager(11)}`,
+  bind(){
+    const draw = () => {
+      const n = S.board.length, c = k => S.board.filter(p => p.o === k).length;
+      $("#bd").innerHTML = !n ? '<p>The board is empty. Be the first to post!</p>' :
+        Object.keys(OP).map(k => `<div class="bar"><span>${LBL[k]}</span><i style="width:${c(k)/n*100}%"></i><b>${c(k)}</b></div>`).join("") +
+        S.board.map((p,i) => `<article class="post"><p><b>${esc(p.n || "Anonymous")}</b>: ${OP[p.o]}</p><p><b>Evidence:</b> ${rich(p.e)}</p><p><b>Justification:</b> ${rich(p.j)}</p><button type="button" class="btn say" data-del="${i}" aria-label="Delete post ${i+1} by ${esc(p.n || "Anonymous")}">Delete</button></article>`).join("") +
+        '<p><button type="button" class="btn alt" id="bclr">Clear the whole board</button></p>';
+    };
+    $("#bf").onsubmit = e => {
+      e.preventDefault(); const ev = $("#be").value.trim(), ju = $("#bj").value.trim();
+      if(!ev || !ju){ $("#bfb").innerHTML = '<p class="fb bad">Please write your numerical evidence and your justification.</p>'; return; }
+      S.board.push({n:$("#bn").value.trim(), o:$("#bo").value, e:ev, j:ju}); complete(11);
+      $("#be").value = $("#bj").value = $("#bn").value = ""; $("#bfb").innerHTML = '<p class="fb ok">Posted! The next student can add a post.</p>'; draw();
+    };
+    $("#bd").onclick = e => {
+      const b = e.target.closest("button"); if(!b) return;
+      if(b.dataset.del !== undefined){ S.board.splice(+b.dataset.del, 1); save(); draw(); }
+      else if(b.id === "bclr" && confirm("Delete every post on the board?")){ S.board = []; save(); draw(); }
+    };
+    draw();
+  }
+};
+
+/* ---------- Slides 13–17 ---------- */
+const TM = {id:0, left:300};
+const fmt = s => Math.floor(s/60) + ":" + String(s%60).padStart(2,"0");
+function timerHtml(){
+  return `<div class="timer"><label for="tmin"><b>Timer</b></label>
+  <select id="tmin" class="in" style="width:auto"><option value="180">3 min</option><option value="300" selected>5 min</option><option value="600">10 min</option></select>
+  <span id="tdisp" class="calc" aria-hidden="true">5:00</span>
+  <button class="btn alt" type="button" id="tgo">Start</button><button class="btn alt" type="button" id="trs">Reset</button>
+  <span id="tend" role="status" class="fb bad"></span></div>`;
+}
+function timerBind(){
+  const d = $("#tdisp"), sel = $("#tmin"), go = $("#tgo"), set = v => { TM.left = v; d.textContent = fmt(v); };
+  const reset = () => { clearInterval(TM.id); go.textContent = "Start"; $("#tend").textContent = ""; set(+sel.value); };
+  sel.onchange = reset; $("#trs").onclick = reset; set(+sel.value);
+  go.onclick = () => {
+    if(go.textContent === "Pause"){ clearInterval(TM.id); go.textContent = "Resume"; return; }
+    $("#tend").textContent = ""; if(TM.left <= 0) set(+sel.value);
+    go.textContent = "Pause"; clearInterval(TM.id);
+    TM.id = setInterval(() => { set(TM.left - 1); if(TM.left <= 0){ clearInterval(TM.id); go.textContent = "Start"; $("#tend").textContent = "Time is up!"; } }, 1000);
+  };
+}
+
+const GK = {
+  A:{i:12, lines:["Three sisters inherit 17 camels.","The eldest receives 1/2.","The second receives 1/3.","The youngest receives 1/9."], q:"Does Beremiz’s trick work? Show your calculations.",
+    key:"17 + 1 = 18. Then 18 ÷ 2 = 9, 18 ÷ 3 = 6 and 18 ÷ 9 = 2. Since 9 + 6 + 2 = 17, we get 18 − 17 = 1 camel left: the one Beremiz added. The trick works perfectly."},
+  B:{i:13, lines:["Three brothers inherit 71 camels.","The eldest receives 1/2.","The second receives 1/3.","The youngest receives 1/9."], q:"Does the trick work here?",
+    key:"71 + 1 = 72. Then 72 ÷ 2 = 36, 72 ÷ 3 = 24 and 72 ÷ 9 = 8. Since 36 + 24 + 8 = 68, we get 72 − 68 = 4 camels left. Beremiz takes his camel back, but 3 camels are still left over. The shares are whole numbers, but the leftover does not match the camel that was added."},
+  C:{i:14, lines:["Three cousins inherit 11 camels.","They must receive 1/2, 1/4 and 1/6."], q:"Can you adapt Beremiz’s method? What number would you need to add?",
+    key:"The smallest number divisible by 2, 4 and 6 is 12, so add 1 camel: 11 + 1 = 12. Then 12 ÷ 2 = 6, 12 ÷ 4 = 3 and 12 ÷ 6 = 2. Since 6 + 3 + 2 = 11, we get 12 − 11 = 1 camel left: the added one. The method works when the new total is divisible by every denominator and the leftover equals the camels added."}
+};
+const groupSlide = k => { const g = GK[k]; return {
+  html: () => { const r = S.ans["g"+k] || {a:"",b:"",c:""}; return `
+  ${listenBar()}
+  <h2>Group ${k}</h2>
+  <p class="note">Work together on paper. The group recorder writes the group’s reasoning below.</p>
+  ${timerHtml()}
+  <div class="speak">${g.lines.map(l => `<p class="calc" style="font-size:1.2rem">${l}</p>`).join("")}<p><b>${g.q}</b></p></div>
+  <form id="gf"><fieldset><legend>Group answers</legend>
+    <label class="lbl" for="ga">1. Did the trick work? Why or why not?</label><textarea id="ga">${esc(r.a)}</textarea>
+    <label class="lbl" for="gb">2. Write the equation that shows what happened to the extra camels.</label><input id="gb" class="in mathable" autocomplete="off" value="${esc(r.b)}">
+    <label class="lbl" for="gc">3. Complete: “Beremiz’s method works when …”</label><input id="gc" class="in mathable" autocomplete="off" value="${esc(r.c)}">
+    <p><button class="btn" type="submit">Save the group’s answers</button></p></fieldset></form>
+  <div id="gfb" aria-live="polite"></div>
+  <details class="key"><summary>Teacher key (open after the groups finish)</summary><p>${g.key}</p></details>
+  ${pager(g.i)}`; },
+  bind(){
+    timerBind();
+    $("#gf").onsubmit = e => { e.preventDefault(); const a = $("#ga").value.trim(), b = $("#gb").value.trim(), c = $("#gc").value.trim();
+      if(!a || !b || !c){ $("#gfb").innerHTML = '<p class="fb bad">Please complete all three answers.</p>'; return; }
+      S.ans["g"+k] = {a,b,c}; complete(g.i); $("#gfb").innerHTML = '<p class="fb ok">Group answers saved.</p>'; };
+    if(S.done[g.i]) $("#gfb").innerHTML = '<p class="fb ok">Group answers saved.</p>';
+  }
+}; };
+
+const debate = {
+  QS: ["Group A and Group B have the same fractions but different numbers. Why does one work and the other doesn’t?","Group C changed the fractions. What did that change about the method?","Can you think of a situation where Beremiz’s trick would fail completely?"],
+  html(){ return `
+  ${listenBar()}
+  <h2>Mathematical debate</h2>
+  <ol class="speak">${this.QS.map(q => `<li>${q}</li>`).join("")}</ol>
+  <h3>What the groups recorded</h3>
+  ${["A","B","C"].map(k => { const r = S.ans["g"+k]; return r ? `<article class="post"><p><b>Group ${k}</b></p><p><b>Did it work?</b> ${rich(r.a)}</p><p><b>Equation:</b> ${rich(r.b)}</p><p><b>The method works when</b> ${rich(r.c)}</p></article>` : `<p>No answers recorded yet for Group ${k}.</p>`; }).join("")}
+  <form id="df"><fieldset><legend>Add your idea to the debate board</legend>
+    <label class="lbl" for="dn">Name or group (optional)</label><input id="dn" class="in" autocomplete="off">
+    <label class="lbl" for="dq">Question</label><select id="dq" class="in">${this.QS.map((q,i) => `<option value="${i}">Question ${i+1}</option>`).join("")}</select>
+    <label class="lbl" for="dt">Your idea</label><textarea id="dt" placeholder="Write in English…"></textarea>
+    <p><button class="btn" type="submit">Post to the board</button></p></fieldset></form>
+  <div id="dfb" aria-live="polite"></div>
+  <h3>Debate board</h3><div id="dd"></div>
+  ${pager(15)}`; },
+  bind(){
+    const draw = () => {
+      $("#dd").innerHTML = !S.debate.length ? "<p>The board is empty. Be the first to post!</p>" :
+        this.QS.map((q,qi) => { const L = S.debate.map((p,i) => ({p,i})).filter(x => x.p.q === qi);
+          return L.length ? `<h4>Question ${qi+1}</h4>` + L.map(x => `<article class="post"><p><b>${esc(x.p.n || "Anonymous")}</b>: ${rich(x.p.t)}</p><button type="button" class="btn say" data-del="${x.i}" aria-label="Delete post by ${esc(x.p.n || "Anonymous")}">Delete</button></article>`).join("") : ""; }).join("") +
+        '<p><button type="button" class="btn alt" id="dclr">Clear the whole board</button></p>';
+    };
+    $("#df").onsubmit = e => { e.preventDefault(); const t = $("#dt").value.trim();
+      if(!t){ $("#dfb").innerHTML = '<p class="fb bad">Write your idea first.</p>'; return; }
+      S.debate.push({n:$("#dn").value.trim(), q:+$("#dq").value, t}); complete(15);
+      $("#dt").value = $("#dn").value = ""; $("#dfb").innerHTML = '<p class="fb ok">Posted! The next student can add an idea.</p>'; draw(); };
+    $("#dd").onclick = e => { const b = e.target.closest("button"); if(!b) return;
+      if(b.dataset.del !== undefined){ S.debate.splice(+b.dataset.del, 1); save(); draw(); }
+      else if(b.id === "dclr" && confirm("Delete every post on the debate board?")){ S.debate = []; save(); draw(); } };
+    draw();
+  }
+};
+
+function downloadAnswers(){
+  const A = S.ans, L = ["The Messy Inheritance: my answers", ""], add = (t,v) => { if(v) L.push(t, plain(v), ""); };
+  add("Vocabulary: expression for Beremiz’s camel", A.v2); add("Think mathematically: what I noticed", A.v7); add("Why the division is impossible", A.v8);
+  add("What changes with 36 camels", A.v9); add("What happened to Beremiz’s camel", A.v11);
+  ["A","B","C"].forEach(g => { const r = A["g"+g]; if(r) add("Group " + g, "Did it work? " + r.a + "\nEquation: " + r.b + "\nBeremiz’s method works when " + r.c); });
+  if(A.exit) add("Exit ticket", "1. Beremiz’s method works when " + A.exit[0] + "\n2. The original division was impossible because " + A.exit[1] + "\n3. I think the solution is fair / unfair because " + A.exit[2]);
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([L.join("\n")], {type:"text/plain"})); a.download = "my-answers.txt"; a.click();
+}
+const exitTicket = {
+  P: ["Beremiz’s method works when…","The original division was impossible because…","I think the solution is fair / unfair because…"],
+  html(){ const x = S.ans.exit || ["","",""]; return `
+  ${listenBar()}
+  <h2>Exit ticket</h2>
+  <p class="speak"><b>What have you learned?</b> Complete the following sentences.</p>
+  <form id="xf">${this.P.map((p,i) => `<label class="lbl" for="x${i}">${i+1}. ${p}</label><textarea id="x${i}">${esc(x[i])}</textarea>`).join("")}
+  <p><button class="btn" type="submit">Finish the course</button></p></form>
+  <div id="xfb" aria-live="polite"></div>
+  ${pager(16)}`; },
+  bind(){
+    const fin = () => { $("#xfb").innerHTML = '<p class="fb ok">Congratulations! You finished the journey.</p><p><button class="btn alt" type="button" id="dla">Download my answers (.txt)</button></p>'; $("#dla").onclick = downloadAnswers; };
+    $("#xf").onsubmit = e => { e.preventDefault(); const v = this.P.map((p,i) => $("#x"+i).value.trim());
+      if(v.some(t => !t)){ $("#xfb").innerHTML = '<p class="fb bad">Please complete all three sentences.</p>'; return; }
+      S.ans.exit = v; complete(16); fin(); };
+    if(S.done[16]) fin();
+  }
+};
+
+const later = i => ({
+  html: () => `<h2>${TITLES[i]}</h2><p class="note">This stop is not ready yet. We will build it in the next step of the course.</p>${pager(i)}`,
+  bind(){}
+});
+const SL = [cover, poll, vocab1, vocab2, reading, chars, think, impossible, addCamel, calcAgain, remainder, fairBoard, groupSlide("A"), groupSlide("B"), groupSlide("C"), debate, exitTicket];
+for(let i = BUILT; i < TOTAL; i++) SL.push(later(i));
+
+/* ---------- Engine ---------- */
+function pager(i){
+  const nextOk = i + 1 < BUILT;
+  return `<div class="pager"><button class="btn alt" type="button" data-act="prev" ${i===0?"disabled":""}>Previous</button>${i+1 < BUILT ? '<button class="btn" type="button" data-act="next">Next</button>' : (i+1 >= TOTAL ? '<span class="note" style="margin:0">You reached the end of the course.</span>' : '<span class="note" style="margin:0">More stops coming soon.</span>')}</div>`;
+}
+function complete(i){ S.done[i] = true; save(); renderNav(); renderProgress(); }
+function go(i){ S.cur = Math.max(0, Math.min(BUILT-1, i)); save(); render(); }
+function renderProgress(){
+  const n = Object.keys(S.done).length, p = Math.round(n/TOTAL*100);
+  $('#fill').style.width = p + "%"; $('#camel').style.left = p + "%"; $('#pbar').setAttribute("aria-valuenow", p);
+  $('#ptext').textContent = n + " of " + TOTAL + " stops completed (" + p + "%)";
+}
+function renderNav(){
+  $('#navlist').innerHTML = TITLES.map((t,i) => {
+    const locked = i >= BUILT, d = S.done[i], cur = i === S.cur;
+    return `<li><button type="button" data-go="${i}" class="${d?"done":""}" ${locked?"disabled":""} ${cur?'aria-current="step"':""}><span class="dot" aria-hidden="true">${d?"✓":locked?"🔒":cur?"●":"○"}</span><span>${i+1}. ${t}<span class="sr">${d?" (completed)":locked?" (not available yet)":cur?" (current)":""}</span></span></button></li>`;
+  }).join("");
+}
+function render(){
+  stopSpeech(); clearInterval(TM.id);
+  const m = $('#main'); m.innerHTML = SL[S.cur].html(); mathPre(); SL[S.cur].bind(); mathPost(); renderNav(); renderProgress();
+  m.focus({preventScroll:true}); window.scrollTo({top:0});
+}
+document.addEventListener("click", e => {
+  const t = e.target.closest("button"); if(!t) return;
+  if(t.dataset.go !== undefined) go(+t.dataset.go);
+  else if(t.dataset.act === "next") go(S.cur+1);
+  else if(t.dataset.act === "prev") go(S.cur-1);
+  else if(t.dataset.act === "stop") stopSpeech();
+  else if(t.dataset.act === "listen") speak([...document.querySelectorAll("main h2,main .speak,main table")].map(x => x.innerText).join(". "));
+  else if(t.dataset.audio) playClip(t.dataset.audio, t.dataset.say);
+  else if(t.dataset.say) speak(t.dataset.say);
+});
+$("#fsBtn").onclick = e => { const on = e.target.getAttribute("aria-pressed") !== "true"; e.target.setAttribute("aria-pressed", on); document.documentElement.style.setProperty("--fs", on ? "21px" : "18px"); e.target.textContent = on ? "Normal text" : "Larger text"; };
+$("#resetBtn").onclick = () => { if(confirm("Delete all progress and answers on this device?")){ S = {cur:0, done:{}, poll:{yes:0,no:0,unsure:0}, ans:{}, notes:{}, board:[], debate:[]}; save(); render(); } };
+if(synth) synth.getVoices();
+render();
+</script>
+</body>
+</html>
